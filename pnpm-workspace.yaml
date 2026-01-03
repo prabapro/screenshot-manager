@@ -1,0 +1,7 @@
+ignoredBuiltDependencies:
+  - sharp
+  - workerd
+
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - esbuild
