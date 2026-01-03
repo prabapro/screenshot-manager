@@ -5,6 +5,8 @@ import {
   handleListScreenshots,
   handleGetScreenshot,
   handleDeleteScreenshot,
+  handleUpdateMetadata,
+  handleDeleteMetadata,
 } from '../handlers/screenshots.js';
 import { authenticate, isErrorResponse } from '../middleware/auth.js';
 import { errorResponse, corsResponse } from '../utils/response.js';
@@ -60,6 +62,78 @@ export async function onRequest({ request, env }) {
     // GET /api/screenshots - List all screenshots
     if (method === 'GET' && pathname === API_ROUTES.SCREENSHOTS) {
       return handleListScreenshots(env);
+    }
+
+    // PATCH /api/screenshots/:key/metadata - Update screenshot metadata
+    // Must come BEFORE the GET handler to avoid conflict
+    if (
+      method === 'PATCH' &&
+      pathname.match(/^\/api\/screenshots\/[^/]+\/metadata$/)
+    ) {
+      const key = pathname
+        .replace(`${API_ROUTES.SCREENSHOTS}/`, '')
+        .replace('/metadata', '');
+      if (!key) {
+        return errorResponse(
+          'Screenshot key is required',
+          HTTP_STATUS.BAD_REQUEST,
+        );
+      }
+
+      // Parse request body for metadata
+      let metadata;
+      try {
+        const body = await request.text();
+        console.log('Received body:', body); // Debug log
+
+        if (!body || body.trim() === '') {
+          return errorResponse(
+            'Request body is required',
+            HTTP_STATUS.BAD_REQUEST,
+          );
+        }
+
+        metadata = JSON.parse(body);
+        console.log('Parsed metadata:', metadata); // Debug log
+      } catch (error) {
+        console.error('JSON parse error:', error);
+        return errorResponse(
+          'Invalid JSON in request body',
+          HTTP_STATUS.BAD_REQUEST,
+          error.message,
+        );
+      }
+
+      if (
+        !metadata ||
+        typeof metadata !== 'object' ||
+        Array.isArray(metadata)
+      ) {
+        return errorResponse(
+          'Metadata must be a valid object',
+          HTTP_STATUS.BAD_REQUEST,
+        );
+      }
+
+      return handleUpdateMetadata(decodeURIComponent(key), metadata, env);
+    }
+
+    // DELETE /api/screenshots/:key/metadata - Delete screenshot metadata
+    // Must come BEFORE the DELETE screenshot handler
+    if (
+      method === 'DELETE' &&
+      pathname.match(/^\/api\/screenshots\/[^/]+\/metadata$/)
+    ) {
+      const key = pathname
+        .replace(`${API_ROUTES.SCREENSHOTS}/`, '')
+        .replace('/metadata', '');
+      if (!key) {
+        return errorResponse(
+          'Screenshot key is required',
+          HTTP_STATUS.BAD_REQUEST,
+        );
+      }
+      return handleDeleteMetadata(decodeURIComponent(key), env);
     }
 
     // GET /api/screenshots/:key - Get screenshot details

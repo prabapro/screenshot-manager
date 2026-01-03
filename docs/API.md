@@ -1,4 +1,4 @@
-# Screenshot Manager API Setup
+# Screenshot Manager API Documentation
 
 ## Environment Variables Setup
 
@@ -89,11 +89,15 @@ Authorization: Bearer <token>
   "data": {
     "screenshots": [
       {
-        "key": "ss/SCR-20251130-s46.png",
+        "key": "SCR-20251130-s46.png",
         "size": 123456,
         "uploaded": "2024-11-30T12:00:00.000Z",
         "etag": "abc123...",
-        "url": "https://ss.prabapro.me/ss/SCR-20251130-s46.png"
+        "url": "https://ss.prabapro.me/SCR-20251130-s46.png",
+        "metadata": {
+          "description": "Homepage design mockup",
+          "tags": ["design", "homepage", "mockup"]
+        }
       }
     ],
     "count": 1,
@@ -109,7 +113,7 @@ GET /api/screenshots/:key
 Authorization: Bearer <token>
 
 # Example:
-GET /api/screenshots/ss%2FSCR-20251130-s46.png
+GET /api/screenshots/SCR-20251130-s46.png
 Authorization: Bearer <token>
 
 # Response:
@@ -117,15 +121,73 @@ Authorization: Bearer <token>
   "success": true,
   "message": "Screenshot details retrieved successfully",
   "data": {
-    "key": "ss/SCR-20251130-s46.png",
+    "key": "SCR-20251130-s46.png",
     "size": 123456,
     "uploaded": "2024-11-30T12:00:00.000Z",
     "etag": "abc123...",
-    "url": "https://ss.prabapro.me/ss/SCR-20251130-s46.png",
-    "customMetadata": {}
+    "url": "https://ss.prabapro.me/SCR-20251130-s46.png",
+    "metadata": {
+      "description": "Homepage design mockup",
+      "tags": ["design", "homepage", "mockup"]
+    }
   }
 }
 ```
+
+#### Update Screenshot Metadata
+
+```bash
+PATCH /api/screenshots/:key
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "metadata": {
+    "description": "Updated description for the screenshot",
+    "tags": ["tag1", "tag2", "tag3"]
+  }
+}
+
+# Example:
+PATCH /api/screenshots/SCR-20251130-s46.png
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "metadata": {
+    "description": "Homepage design mockup - final version",
+    "tags": ["design", "homepage", "mockup", "final"]
+  }
+}
+
+# Response:
+{
+  "success": true,
+  "message": "Screenshot metadata updated successfully",
+  "data": {
+    "key": "SCR-20251130-s46.png",
+    "metadata": {
+      "description": "Homepage design mockup - final version",
+      "tags": ["design", "homepage", "mockup", "final"]
+    }
+  }
+}
+```
+
+**Metadata Update Notes:**
+
+- The update is a **merge operation** - you can update description, tags, or both
+- To remove description: send `"description": ""` or `"description": null`
+- To remove all tags: send `"tags": []` or `"tags": null`
+- Existing metadata that's not included in the request remains unchanged
+
+**Metadata Validation Rules:**
+
+- `description`: String, max 500 characters
+- `tags`: Array of strings, max 10 tags
+- Each tag: max 50 characters
+- Tags are case-sensitive but duplicates (case-insensitive) are removed
+- Total metadata size: max 2KB (R2 limit)
 
 #### Delete Screenshot
 
@@ -134,7 +196,7 @@ DELETE /api/screenshots/:key
 Authorization: Bearer <token>
 
 # Example:
-DELETE /api/screenshots/ss%2FSCR-20251130-s46.png
+DELETE /api/screenshots/SCR-20251130-s46.png
 Authorization: Bearer <token>
 
 # Response:
@@ -142,10 +204,12 @@ Authorization: Bearer <token>
   "success": true,
   "message": "Screenshot deleted successfully",
   "data": {
-    "key": "ss/SCR-20251130-s46.png"
+    "key": "SCR-20251130-s46.png"
   }
 }
 ```
+
+**Note:** Deleting a screenshot automatically removes all associated metadata.
 
 ---
 
@@ -154,7 +218,7 @@ Authorization: Bearer <token>
 ### 1. Login and Get Token
 
 ```bash
-curl -X POST https://ss-ui.prabapro.me/api/auth/login \
+curl -X POST http://127.0.0.1:8788/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
@@ -162,27 +226,187 @@ curl -X POST https://ss-ui.prabapro.me/api/auth/login \
   }'
 ```
 
-Save the token from the response.
+Save the token from the response for subsequent requests.
 
 ### 2. List Screenshots
 
 ```bash
-curl -X GET https://ss-ui.prabapro.me/api/screenshots \
+curl -X GET http://127.0.0.1:8788/api/screenshots \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 ### 3. Get Screenshot Details
 
 ```bash
-curl -X GET "https://ss-ui.prabapro.me/api/screenshots/ss%2FSCR-20251130-s46.png" \
+curl -X GET "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
-### 4. Delete Screenshot
+### 4. Update Screenshot Metadata
+
+**Add/Update both description and tags:**
 
 ```bash
-curl -X DELETE "https://ss-ui.prabapro.me/api/screenshots/ss%2FSCR-20251130-s46.png" \
+curl -X PATCH "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "description": "Screenshot of the new feature implementation",
+      "tags": ["feature", "implementation", "UI"]
+    }
+  }'
+```
+
+**Update only description:**
+
+```bash
+curl -X PATCH "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "description": "Updated description only"
+    }
+  }'
+```
+
+**Update only tags:**
+
+```bash
+curl -X PATCH "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "tags": ["new-tag-1", "new-tag-2"]
+    }
+  }'
+```
+
+**Remove description:**
+
+```bash
+curl -X PATCH "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "description": ""
+    }
+  }'
+```
+
+**Remove all tags:**
+
+```bash
+curl -X PATCH "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "tags": []
+    }
+  }'
+```
+
+### 5. Delete Screenshot
+
+```bash
+curl -X DELETE "http://127.0.0.1:8788/api/screenshots/mock-123-ies.png" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+---
+
+## Metadata Examples
+
+### Basic Metadata
+
+```json
+{
+  "metadata": {
+    "description": "Login page design",
+    "tags": ["UI", "login", "authentication"]
+  }
+}
+```
+
+### Description Only
+
+```json
+{
+  "metadata": {
+    "description": "Error state for failed API calls"
+  }
+}
+```
+
+### Tags Only
+
+```json
+{
+  "metadata": {
+    "tags": ["bug", "critical", "production"]
+  }
+}
+```
+
+### Minimal Metadata
+
+```json
+{
+  "metadata": {
+    "tags": ["misc"]
+  }
+}
+```
+
+---
+
+## Error Responses
+
+### Invalid Metadata Format
+
+```json
+{
+  "success": false,
+  "error": "Invalid metadata",
+  "details": [
+    "Tags must be an array",
+    "Description must not exceed 500 characters"
+  ]
+}
+```
+
+### Screenshot Not Found
+
+```json
+{
+  "success": false,
+  "error": "Resource not found"
+}
+```
+
+### Unauthorized
+
+```json
+{
+  "success": false,
+  "error": "Unauthorized - Invalid or missing token"
+}
+```
+
+### Metadata Too Large
+
+```json
+{
+  "success": false,
+  "error": "Invalid metadata",
+  "details": [
+    "Metadata size (2150 bytes) exceeds maximum allowed size of 2048 bytes"
+  ]
+}
 ```
 
 ---
@@ -200,22 +424,18 @@ This will start:
 - Vite dev server on `http://localhost:3000`
 - Wrangler dev server on `http://127.0.0.1:8788`
 
-### Test API Locally
+### Development Mode Features
 
-```bash
-# Login
-curl -X POST http://127.0.0.1:8788/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "your-password"}'
+In development mode (when running locally):
 
-# List screenshots
-curl -X GET http://127.0.0.1:8788/api/screenshots \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE"
-```
+- Mock data is used instead of actual R2 operations
+- Responses include `__dev_mode: true` flag
+- Metadata updates are simulated (not persisted)
+- Useful for testing API structure without R2 setup
 
 ---
 
-## Deployment
+## Production Deployment
 
 ### Deploy to Cloudflare Pages
 
@@ -232,18 +452,41 @@ Make sure environment variables are set in the Cloudflare dashboard before deplo
 ```
 functions/
 ├── api/
-│   └── [[route]].js          # Main API router
+│   └── [[route]].js          # Main API router (with PATCH route)
 ├── config/
-│   └── constants.js          # Configuration constants
+│   └── constants.js          # Configuration constants (with metadata config)
 ├── handlers/
 │   ├── auth.js              # Login/logout handlers
-│   └── screenshots.js       # Screenshot CRUD handlers
+│   └── screenshots.js       # Screenshot CRUD + metadata handlers
 ├── middleware/
 │   └── auth.js              # JWT authentication middleware
 └── utils/
     ├── jwt.js               # JWT creation/validation
+    ├── metadata.js          # Metadata validation/sanitization (NEW)
     └── response.js          # Standardized API responses
 ```
+
+---
+
+## Metadata Configuration
+
+Current metadata limits (configured in `functions/config/constants.js`):
+
+```javascript
+export const METADATA = {
+  ALLOWED_FIELDS: ['description', 'tags'],
+  MAX_DESCRIPTION_LENGTH: 500,
+  MAX_TAGS: 10,
+  MAX_TAG_LENGTH: 50,
+  MAX_SIZE_BYTES: 2048, // R2 custom metadata limit
+};
+```
+
+You can adjust these limits as needed, but keep in mind:
+
+- R2 has a hard limit of 2KB for custom metadata per object
+- Larger metadata means less room for other fields
+- Consider your use case when setting limits
 
 ---
 
@@ -254,6 +497,7 @@ functions/
 - JWT_SECRET should be at least 32 characters long
 - CORS is enabled for all origins (configure as needed for production)
 - All protected routes require valid JWT token in Authorization header
+- Metadata is validated and sanitized before storage
 
 ---
 
@@ -276,3 +520,17 @@ functions/
 - Check username is exactly "admin"
 - Verify AUTH_PASSWORD matches your environment variable
 - Make sure environment variables are set in CF dashboard for production
+
+### "Invalid metadata" error
+
+- Check that metadata follows the validation rules
+- Ensure description doesn't exceed 500 characters
+- Ensure you have no more than 10 tags
+- Ensure each tag doesn't exceed 50 characters
+- Check that total metadata size is under 2KB
+- Verify tags is an array, not a string
+
+### Metadata not persisting in development
+
+- This is expected! Development mode uses mock data
+- To test actual R2 metadata, deploy to Cloudflare or use `wrangler dev` with remote R2 binding
