@@ -30,4 +30,14 @@ export const ERROR_MESSAGES = {
   INVALID_TOKEN: 'Invalid or expired token',
   INTERNAL_ERROR: 'Internal server error',
   NOT_FOUND: 'Resource not found',
+  INVALID_METADATA: 'Invalid metadata',
+  METADATA_TOO_LARGE: 'Metadata size exceeds maximum allowed',
+};
+
+export const METADATA = {
+  ALLOWED_FIELDS: ['description', 'tags'],
+  MAX_DESCRIPTION_LENGTH: 500,
+  MAX_TAGS: 10,
+  MAX_TAG_LENGTH: 50,
+  MAX_SIZE_BYTES: 2048, // 2KB limit for R2 custom metadata
 };

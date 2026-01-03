@@ -4,6 +4,7 @@ import { handleLogin, handleLogout } from '../handlers/auth.js';
 import {
   handleListScreenshots,
   handleGetScreenshot,
+  handleUpdateMetadata,
   handleDeleteScreenshot,
 } from '../handlers/screenshots.js';
 import { authenticate, isErrorResponse } from '../middleware/auth.js';
@@ -72,6 +73,21 @@ export async function onRequest({ request, env }) {
         );
       }
       return handleGetScreenshot(decodeURIComponent(key), env);
+    }
+
+    // PATCH /api/screenshots/:key - Update screenshot metadata
+    if (
+      method === 'PATCH' &&
+      pathname.startsWith(`${API_ROUTES.SCREENSHOTS}/`)
+    ) {
+      const key = pathname.replace(`${API_ROUTES.SCREENSHOTS}/`, '');
+      if (!key) {
+        return errorResponse(
+          'Screenshot key is required',
+          HTTP_STATUS.BAD_REQUEST,
+        );
+      }
+      return handleUpdateMetadata(decodeURIComponent(key), request, env);
     }
 
     // DELETE /api/screenshots/:key - Delete screenshot
