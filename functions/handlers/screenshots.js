@@ -5,9 +5,10 @@ import { HTTP_STATUS, ERROR_MESSAGES } from '../config/constants.js';
 import {
   validateMetadata,
   sanitizeMetadata,
-  parseMetadata,
-  prepareForR2,
+  toR2Metadata,
+  fromR2Metadata,
   mergeMetadata,
+  checkMetadataSize,
 } from '../utils/metadata.js';
 
 /**
@@ -23,7 +24,8 @@ function getMockScreenshots() {
       url: 'https://ss.prabapro.me/mock-123-ies.png',
       metadata: {
         description: 'Mock screenshot 1',
-        tags: ['mock', 'dev'],
+        tags: ['mock', 'test'],
+        category: 'development',
       },
     },
     {
@@ -34,7 +36,7 @@ function getMockScreenshots() {
       url: 'https://ss.prabapro.me/mock-456-s2v.png',
       metadata: {
         description: 'Mock screenshot 2',
-        tags: ['test'],
+        tags: ['mock'],
       },
     },
     {
@@ -95,9 +97,9 @@ export async function handleListScreenshots(env) {
     // Format the response with metadata
     const screenshots = await Promise.all(
       listed.objects.map(async (obj) => {
-        // Get full object to access metadata
+        // For list view, we need to get full object to retrieve metadata
+        // Note: This might be slow for large buckets, consider pagination
         const fullObject = await bucket.head(obj.key);
-        const metadata = parseMetadata(fullObject);
 
         return {
           key: obj.key,
@@ -105,7 +107,7 @@ export async function handleListScreenshots(env) {
           uploaded: obj.uploaded.toISOString(),
           etag: obj.etag,
           url: `https://ss.prabapro.me/${obj.key}`,
-          metadata,
+          metadata: fromR2Metadata(fullObject?.customMetadata || {}),
         };
       }),
     );
@@ -173,8 +175,6 @@ export async function handleGetScreenshot(key, env) {
       return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
-    const metadata = parseMetadata(object);
-
     return successResponse(
       {
         key: object.key,
@@ -182,7 +182,7 @@ export async function handleGetScreenshot(key, env) {
         uploaded: object.uploaded.toISOString(),
         etag: object.etag,
         url: `https://ss.prabapro.me/${object.key}`,
-        metadata,
+        metadata: fromR2Metadata(object.customMetadata || {}),
       },
       'Screenshot details retrieved successfully',
       HTTP_STATUS.OK,
@@ -200,30 +200,40 @@ export async function handleGetScreenshot(key, env) {
 /**
  * Update screenshot metadata
  * @param {string} key - Screenshot key
- * @param {Request} request - Request object with metadata
+ * @param {Object} metadata - New metadata
  * @param {Object} env - Environment variables
  * @returns {Promise<Response>}
  */
-export async function handleUpdateMetadata(key, request, env) {
+export async function handleUpdateMetadata(key, metadata, env) {
   try {
-    // Parse request body
-    const body = await request.json();
-    const newMetadata = body.metadata;
+    console.log('handleUpdateMetadata called with:', { key, metadata });
 
-    if (!newMetadata) {
-      return errorResponse('Metadata is required', HTTP_STATUS.BAD_REQUEST);
-    }
-
-    // Sanitize metadata
-    const sanitized = sanitizeMetadata(newMetadata);
+    // Sanitize metadata first
+    const sanitized = sanitizeMetadata(metadata);
+    console.log('Sanitized metadata:', sanitized);
 
     // Validate metadata
     const validation = validateMetadata(sanitized);
     if (!validation.valid) {
+      console.log('Validation failed:', validation.errors);
       return errorResponse(
         ERROR_MESSAGES.INVALID_METADATA,
         HTTP_STATUS.BAD_REQUEST,
         validation.errors,
+      );
+    }
+
+    // Check metadata size
+    const sizeCheck = checkMetadataSize(sanitized);
+    if (!sizeCheck.valid) {
+      return errorResponse(
+        ERROR_MESSAGES.METADATA_TOO_LARGE,
+        HTTP_STATUS.BAD_REQUEST,
+        {
+          size: sizeCheck.size,
+          limit: sizeCheck.limit,
+          message: `Metadata size (${sizeCheck.size} bytes) exceeds R2 limit (${sizeCheck.limit} bytes)`,
+        },
       );
     }
 
@@ -241,9 +251,9 @@ export async function handleUpdateMetadata(key, request, env) {
           key,
           metadata: sanitized,
           __dev_mode: true,
-          __note: 'Mock update - no actual metadata changed',
+          __note: 'Mock update - no actual metadata updated',
         },
-        'Screenshot metadata updated successfully (DEV MODE - Mock)',
+        'Metadata updated successfully (DEV MODE - Mock)',
         HTTP_STATUS.OK,
       );
     }
@@ -265,37 +275,116 @@ export async function handleUpdateMetadata(key, request, env) {
     }
 
     // Get current metadata
-    const currentMetadata = parseMetadata(existingObject);
+    const currentMetadata = fromR2Metadata(existingObject.customMetadata || {});
 
     // Merge with new metadata
-    const mergedMetadata = mergeMetadata(currentMetadata, sanitized);
+    const updatedMetadata = mergeMetadata(currentMetadata, sanitized);
 
-    // Prepare for R2 storage
-    const r2Metadata = prepareForR2(mergedMetadata);
-
-    // Get the object content
-    const object = await bucket.get(key);
-    if (!object) {
+    // Get the actual file to re-upload with new metadata
+    const fileObject = await bucket.get(key);
+    if (!fileObject) {
       return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
     // Re-upload with updated metadata
-    // R2 requires re-uploading the object to update metadata
-    await bucket.put(key, object.body, {
-      httpMetadata: object.httpMetadata,
-      customMetadata: r2Metadata,
+    await bucket.put(key, fileObject.body, {
+      httpMetadata: fileObject.httpMetadata,
+      customMetadata: toR2Metadata(updatedMetadata),
+    });
+
+    // Get updated object to return
+    const updated = await bucket.head(key);
+
+    return successResponse(
+      {
+        key: updated.key,
+        size: updated.size,
+        uploaded: updated.uploaded.toISOString(),
+        etag: updated.etag,
+        url: `https://ss.prabapro.me/${updated.key}`,
+        metadata: fromR2Metadata(updated.customMetadata || {}),
+      },
+      'Metadata updated successfully',
+      HTTP_STATUS.OK,
+    );
+  } catch (error) {
+    console.error('Update metadata error:', error);
+    return errorResponse(
+      ERROR_MESSAGES.INTERNAL_ERROR,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      error.message,
+    );
+  }
+}
+
+/**
+ * Delete screenshot metadata (clear all metadata fields)
+ * @param {string} key - Screenshot key
+ * @param {Object} env - Environment variables
+ * @returns {Promise<Response>}
+ */
+export async function handleDeleteMetadata(key, env) {
+  try {
+    console.log('handleDeleteMetadata called with:', { key });
+
+    // Use mock response in development
+    if (isDevelopment(env)) {
+      const mockScreenshots = getMockScreenshots();
+      const screenshot = mockScreenshots.find((s) => s.key === key);
+
+      if (!screenshot) {
+        return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+      }
+
+      return successResponse(
+        {
+          key,
+          __dev_mode: true,
+          __note: 'Mock deletion - no actual metadata deleted',
+        },
+        'Metadata deleted successfully (DEV MODE - Mock)',
+        HTTP_STATUS.OK,
+      );
+    }
+
+    // Production: Use actual R2 bucket
+    const bucket = env.screenshots;
+
+    if (!bucket) {
+      return errorResponse(
+        'R2 bucket not configured',
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // Check if object exists
+    const existingObject = await bucket.head(key);
+    if (!existingObject) {
+      return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+    }
+
+    // Get the actual file to re-upload without metadata
+    const fileObject = await bucket.get(key);
+    if (!fileObject) {
+      return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+    }
+
+    // Re-upload without custom metadata
+    await bucket.put(key, fileObject.body, {
+      httpMetadata: fileObject.httpMetadata,
+      customMetadata: {}, // Empty metadata
     });
 
     return successResponse(
       {
         key,
-        metadata: mergedMetadata,
+        metadata: {},
       },
-      'Screenshot metadata updated successfully',
+      'Metadata deleted successfully',
       HTTP_STATUS.OK,
     );
   } catch (error) {
-    console.error('Update metadata error:', error);
+    console.error('Delete metadata error:', error);
     return errorResponse(
       ERROR_MESSAGES.INTERNAL_ERROR,
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -348,7 +437,7 @@ export async function handleDeleteScreenshot(key, env) {
       return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
-    // Delete object from R2 (metadata is automatically deleted with it)
+    // Delete object from R2 (this also deletes metadata)
     await bucket.delete(key);
 
     return successResponse(

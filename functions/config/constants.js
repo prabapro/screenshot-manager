@@ -31,13 +31,35 @@ export const ERROR_MESSAGES = {
   INTERNAL_ERROR: 'Internal server error',
   NOT_FOUND: 'Resource not found',
   INVALID_METADATA: 'Invalid metadata',
-  METADATA_TOO_LARGE: 'Metadata size exceeds maximum allowed',
+  METADATA_TOO_LARGE: 'Metadata exceeds size limit',
 };
 
 export const METADATA = {
-  ALLOWED_FIELDS: ['description', 'tags'],
-  MAX_DESCRIPTION_LENGTH: 500,
-  MAX_TAGS: 10,
-  MAX_TAG_LENGTH: 50,
-  MAX_SIZE_BYTES: 2048, // 2KB limit for R2 custom metadata
+  // R2 custom metadata has a 2KB limit
+  MAX_SIZE_BYTES: 2048,
+
+  // Allowed metadata fields and their constraints
+  FIELDS: {
+    description: {
+      type: 'string',
+      maxLength: 500,
+      required: false,
+    },
+    tags: {
+      type: 'array',
+      maxCount: 20,
+      maxTagLength: 50,
+      required: false,
+    },
+    category: {
+      type: 'string',
+      maxLength: 50,
+      required: false,
+    },
+    notes: {
+      type: 'string',
+      maxLength: 1000,
+      required: false,
+    },
+  },
 };
