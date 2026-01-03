@@ -6,7 +6,6 @@
   "scripts": {
     "build:viz": "pnpm dlx vite-bundle-visualizer --report dist/stats.json --output dist/bundle-visualizer.html",
     "build": "vite build",
-    "dev:env": "infisical run -- pnpm dev",
     "dev": "concurrently \"vite\" -c \"green,blue\" \"wrangler pages dev\"",
     "format": "prettier --write \"./**/*.{html,js,jsx,json,css,ts,tsx}\"",
     "generate-jsconfig": "node tools/generate-jsconfig.js",

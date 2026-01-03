@@ -1,3 +1,6 @@
+#Infisical var injection isn't working fine with wrangler
+#Refer Infisical for the secrets
+
 AUTH_PASSWORD=
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
