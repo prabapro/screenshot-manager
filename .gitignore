@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.wrangler
 
 # Editor directories and files
 .vscode/*
@@ -28,6 +29,7 @@ dist-ssr
 !*.code-workspace
 
 .env*
+.dev.vars
 .flaskenv*
 !.env.project
 !.env.vault
