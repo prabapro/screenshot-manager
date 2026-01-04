@@ -36,7 +36,7 @@ export function TagInput({
       e.preventDefault();
       addTag();
     }
-    
+
     // Remove last tag on Backspace if input is empty
     if (e.key === 'Backspace' && !inputValue && value.length > 0) {
       removeTag(value.length - 1);
@@ -45,7 +45,7 @@ export function TagInput({
 
   const addTag = () => {
     const tag = inputValue.trim();
-    
+
     // Validate tag
     if (!tag) return;
     if (tag.length > maxTagLength) {
@@ -85,7 +85,7 @@ export function TagInput({
           'min-h-[2.5rem] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] outline-none',
           'flex flex-wrap items-center gap-2 cursor-text',
           'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
-          disabled && 'opacity-50 cursor-not-allowed'
+          disabled && 'opacity-50 cursor-not-allowed',
         )}>
         {/* Render existing tags */}
         {value.map((tag, index) => (

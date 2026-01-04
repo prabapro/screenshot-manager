@@ -25,6 +25,7 @@
 │   │   │   ├── ErrorBoundary.jsx
 │   │   │   ├── LoadingSpinner.jsx
 │   │   │   ├── MarkdownRenderer.jsx
+│   │   │   ├── ProtectedRoute.jsx
 │   │   │   └── ScrollToTop.jsx
 │   │   ├── layout
 │   │   │   ├── Footer.jsx
@@ -32,11 +33,27 @@
 │   │   │   ├── Layout.jsx
 │   │   │   ├── MobileMenu.jsx
 │   │   │   └── Navigation.jsx
+│   │   ├── screenshots
+│   │   │   ├── DeleteDialog.jsx
+│   │   │   ├── MetadataForm.jsx
+│   │   │   ├── Pagination.jsx
+│   │   │   ├── ScreenshotCard.jsx
+│   │   │   ├── ScreenshotGrid.jsx
+│   │   │   ├── ScreenshotModal.jsx
+│   │   │   ├── SearchAndFilters.jsx
+│   │   │   └── ViewToggle.jsx
 │   │   └── ui
+│   │       ├── alert-dialog.jsx
 │   │       ├── badge.jsx
 │   │       ├── button.jsx
 │   │       ├── card.jsx
+│   │       ├── dialog.jsx
+│   │       ├── input.jsx
+│   │       ├── label.jsx
 │   │       ├── navigation-menu.jsx
+│   │       ├── select.jsx
+│   │       ├── tag-input.jsx
+│   │       ├── textarea.jsx
 │   │       ├── theme-toggle.jsx
 │   │       └── tooltip.jsx
 │   ├── config
@@ -50,16 +67,24 @@
 │   │   └── utils.js
 │   ├── pages
 │   │   ├── Home.jsx
+│   │   ├── Login.jsx
 │   │   ├── NotFound.jsx
 │   │   ├── Privacy.jsx
 │   │   └── Terms.jsx
 │   ├── routes
 │   │   └── AppRouter.jsx
+│   ├── services
+│   │   └── api.js
 │   ├── stores
+│   │   ├── useAuthStore.js
+│   │   ├── useScreenshotsStore.js
 │   │   └── useSettingsStore.js
 │   ├── styles
 │   │   └── index.css
 │   ├── utils
+│   │   ├── auth.js
+│   │   ├── clipboard.js
+│   │   ├── formatters.js
 │   │   ├── markdownUtils.js
 │   │   └── theme.js
 │   ├── App.jsx
