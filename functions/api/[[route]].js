@@ -93,7 +93,8 @@ export async function onRequest({ request, env }) {
           );
         }
 
-        metadata = JSON.parse(body);
+        const parsedBody = JSON.parse(body);
+        metadata = parsedBody.metadata;
         console.log('Parsed metadata:', metadata); // Debug log
       } catch (error) {
         console.error('JSON parse error:', error);
