@@ -91,7 +91,6 @@ export default function MobileMenu({ isOpen, onClose }) {
                 className="w-full flex items-center justify-center space-x-2"
                 onClick={handleLogout}>
                 <LogOut className="w-4 h-4" />
-                <span>Logout</span>
               </Button>
             )}
 

@@ -5,7 +5,7 @@ import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
-  navigationMenuTriggerStyle,
+  // navigationMenuTriggerStyle,
 } from '@components/ui/navigation-menu';
 import { Mail } from 'lucide-react';
 
@@ -50,17 +50,17 @@ export default function Navigation({ mobile = false, onItemClick }) {
     <NavigationMenu>
       <NavigationMenuList>
         {/* Terms */}
-        <NavigationMenuItem>
+        {/* <NavigationMenuItem>
           <Link to="/terms" className={navigationMenuTriggerStyle()}>
             Terms
           </Link>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
         {/* Privacy Policy */}
-        <NavigationMenuItem>
+        {/* <NavigationMenuItem>
           <Link to="/privacy" className={navigationMenuTriggerStyle()}>
             Privacy Policy
           </Link>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
       </NavigationMenuList>
     </NavigationMenu>
   );
