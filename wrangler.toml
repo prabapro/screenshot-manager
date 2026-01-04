@@ -11,3 +11,6 @@ r2_buckets = [
 ip = "127.0.0.1"
 local_protocol = "http"
 port = 8788
+
+[observability]
+enabled = true
