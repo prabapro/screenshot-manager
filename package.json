@@ -6,12 +6,12 @@
   "scripts": {
     "build:viz": "pnpm dlx vite-bundle-visualizer --report dist/stats.json --output dist/bundle-visualizer.html",
     "build": "vite build",
-    "dev": "concurrently \"vite\" -c \"green,blue\" \"wrangler pages dev\"",
+    "deploy:pages": "npm run build && wrangler pages deploy ./dist",
     "dev:env": "infisical init && infisical export --env=dev --format=dotenv --path=/ > .dev.vars && echo \"✅ .dev.vars generated. Please make sure it is added to .gitignore\"",
+    "dev": "concurrently \"vite\" -c \"green,blue\" \"wrangler pages dev\"",
     "format": "prettier --write \"./**/*.{html,js,jsx,json,css,ts,tsx}\"",
     "generate-jsconfig": "node tools/generate-jsconfig.js",
     "lint": "eslint .",
-    "pages:deploy": "npm run build && wrangler pages deploy ./dist",
     "preview": "vite preview",
     "update-tree": "node tools/update-tree.js",
     "update-version": "node tools/update-version.js && pnpm install && pnpm format && pnpm update-tree"
