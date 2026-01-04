@@ -80,7 +80,7 @@ export default function Login() {
                 id="username"
                 name="username"
                 type="text"
-                placeholder="admin"
+                placeholder="prabapro"
                 value={formData.username}
                 onChange={handleInputChange}
                 disabled={isLoading}

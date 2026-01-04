@@ -11,7 +11,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin",
+  "username": "prabapro",
   "password": "your-password"
 }
 
@@ -21,7 +21,7 @@ Content-Type: application/json
   "message": "Login successful",
   "data": {
     "token": "eyJhbGc...",
-    "username": "admin",
+    "username": "prabapro",
     "expiresIn": 86400
   }
 }
@@ -188,7 +188,7 @@ Authorization: Bearer <token>
 curl -X POST http://127.0.0.1:8788/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "admin",
+    "username": "prabapro",
     "password": "your-password"
   }'
 ```
