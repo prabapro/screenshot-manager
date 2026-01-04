@@ -1,6 +1,6 @@
 # Screenshot Manager
 
-Screenshot Manager with CloudFlare Worker & R2
+Screenshot Manager with CloudFlare Worker Pages & R2 Storage
 
 ## Getting Started
 
