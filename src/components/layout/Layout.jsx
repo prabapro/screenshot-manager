@@ -45,9 +45,7 @@ export default function Layout({ children }) {
       <MobileMenu isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 flex-1">
-        {children}
-      </main>
+      <main className="container mx-auto px-4 py-8 flex-1">{children}</main>
 
       {/* Footer */}
       <Footer />

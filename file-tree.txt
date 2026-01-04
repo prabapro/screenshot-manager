@@ -13,6 +13,7 @@
 │   │   └── auth.js
 │   └── utils
 │       ├── jwt.js
+│       ├── metadata.js
 │       └── response.js
 ├── public
 │   └── images
@@ -68,8 +69,8 @@
 │   ├── update-tree.js
 │   └── update-version.js
 ├── .dev.vars
-├── .dev.vars.example
 ├── .gitignore
+├── .infisical.json
 ├── components.json
 ├── eslint.config.js
 ├── file-tree.txt
