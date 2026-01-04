@@ -55,8 +55,30 @@ async function apiRequest(endpoint, options = {}) {
       throw new ApiError('Unauthorized', 401, null);
     }
 
-    // Parse response
-    const data = await response.json();
+    // Parse response - handle non-JSON responses
+    let data;
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+        // eslint-disable-next-line no-unused-vars
+      } catch (jsonError) {
+        throw new ApiError(
+          'Invalid JSON response from server',
+          response.status,
+          null,
+        );
+      }
+    } else {
+      // Non-JSON response (like HTML 404 page)
+      const text = await response.text();
+      throw new ApiError(
+        `Server returned non-JSON response (${response.status})`,
+        response.status,
+        text.substring(0, 200), // First 200 chars for debugging
+      );
+    }
 
     // Handle non-2xx responses
     if (!response.ok) {
