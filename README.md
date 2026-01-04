@@ -54,7 +54,7 @@ npm run pages:deploy
 
 ### "Invalid credentials" error
 
-- Check username is exactly "admin"
+- Check username is exactly `admin`
 - Verify AUTH_PASSWORD matches your environment variable
 - Make sure environment variables are set in CF dashboard for production
 
