@@ -4,7 +4,7 @@ name = "screenshots-manager"
 pages_build_output_dir = "./dist"
 
 r2_buckets = [
-  {binding = "screenshots", bucket_name = "screenshots"}
+  {binding = "screenshots", bucket_name = "screenshots", remote = true}
 ]
 
 [dev]

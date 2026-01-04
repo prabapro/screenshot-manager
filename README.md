@@ -7,18 +7,34 @@ Screenshot Manager with CloudFlare Worker Pages & R2 Storage
 1. Clone the repo
 2. Run `pnpm install`
 3. Run `pnpm dev:env` to initiate Infisical & import the secrets into `.dev.vars`
-4. Run `pnpm dev` to start the development server. This will start:
+4. **Authenticate with Wrangler**: Run `wrangler login` to authenticate with your Cloudflare account
+5. Run `pnpm dev` to start the development server. This will start:
    - Vite dev server on `http://localhost:3000`
-   - Wrangler dev server on `http://127.0.0.1:8788`
+   - Wrangler dev server on `http://127.0.0.1:8788` with remote R2 access
 
-### Development Mode Features
+### Development Mode with Production R2
 
-In development mode (when running locally):
+The development server connects directly to your production R2 bucket using the `remote = true` flag in `wrangler.toml`. This means:
 
-- Mock data is used instead of actual R2 operations
-- Responses include `__dev_mode: true` flag
-- Metadata updates are simulated (not persisted)
-- Useful for testing API structure without R2 setup
+- ✅ All operations (read, write, delete) work on the actual production bucket
+- ✅ No mock data - you see real screenshots and metadata
+- ✅ Perfect for testing since you're the only user
+- ⚠️ **Important**: Changes you make in dev are permanent (they modify the production bucket)
+
+**Configuration:**
+
+```toml
+# wrangler.toml
+r2_buckets = [
+  {binding = "screenshots", bucket_name = "screenshots", remote = true}
+]
+```
+
+**Requirements:**
+
+- Must be authenticated with Wrangler (`wrangler login`)
+- R2 bucket must exist in your Cloudflare account
+- Proper environment variables must be set in `.dev.vars`
 
 ## Deployment
 
@@ -42,8 +58,17 @@ npm run pages:deploy
 
 ### "R2 bucket not configured" error
 
-- Make sure the R2 bucket binding is in `wrangler.toml`
+- Make sure the R2 bucket binding is in `wrangler.toml` with `remote = true`
 - Verify the bucket name matches in your Cloudflare dashboard
+- Ensure you're authenticated with Wrangler (`wrangler login`)
+- Check that the bucket exists in your Cloudflare account
+
+### Empty screenshots array despite having files
+
+- Verify files exist in the bucket: `wrangler r2 object list screenshots`
+- Check that `remote = true` is set in the R2 bucket binding
+- Ensure you're logged in to the correct Cloudflare account
+- Restart the dev server after making changes to `wrangler.toml`
 
 ### "Invalid or expired token" error
 
@@ -62,15 +87,16 @@ npm run pages:deploy
 
 - Check that metadata follows the validation rules
 - Ensure description doesn't exceed 500 characters
-- Ensure you have no more than 10 tags
+- Ensure you have no more than 20 tags
 - Ensure each tag doesn't exceed 50 characters
 - Check that total metadata size is under 2KB
 - Verify tags is an array, not a string
 
-### Metadata not persisting in development
+### Wrangler authentication issues
 
-- This is expected! Development mode uses mock data
-- To test actual R2 metadata, deploy to Cloudflare or use `wrangler dev` with remote R2 binding
+- Run `wrangler login` to authenticate
+- Make sure you have access to the Cloudflare account with the R2 bucket
+- Check that the bucket name in `wrangler.toml` matches your actual bucket
 
 ## Docs
 

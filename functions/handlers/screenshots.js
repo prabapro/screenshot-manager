@@ -12,76 +12,12 @@ import {
 } from '../utils/metadata.js';
 
 /**
- * Get mock screenshots for development
- */
-function getMockScreenshots() {
-  return [
-    {
-      key: 'mock-123-ies.png',
-      size: 242370,
-      uploaded: '2025-11-30T07:02:11.430Z',
-      etag: 'c12f683797fae585ebe6365645bd8ba5',
-      url: 'https://ss.prabapro.me/mock-123-ies.png',
-      metadata: {
-        description: 'Mock screenshot 1',
-        tags: ['mock', 'test'],
-        category: 'development',
-      },
-    },
-    {
-      key: 'mock-456-s2v.png',
-      size: 162488,
-      uploaded: '2025-11-30T13:59:54.305Z',
-      etag: '6b90173de84b0a7cf8b060c42c79ac9f',
-      url: 'https://ss.prabapro.me/mock-456-s2v.png',
-      metadata: {
-        description: 'Mock screenshot 2',
-        tags: ['mock'],
-      },
-    },
-    {
-      key: 'mock-678-sj4.png',
-      size: 191211,
-      uploaded: '2025-12-14T14:19:33.278Z',
-      etag: '306b679d1ba3cd5256bd6f5ddca13b01',
-      url: 'https://ss.prabapro.me/mock-678-sj4.png',
-      metadata: {},
-    },
-  ];
-}
-
-/**
- * Check if running in development mode
- */
-function isDevelopment(env) {
-  // Check if we're in local development
-  // Wrangler sets different env vars in dev vs prod
-  return !env.CF_PAGES || env.ENVIRONMENT === 'development';
-}
-
-/**
  * List all screenshots from R2 bucket
  * @param {Object} env - Environment variables (contains R2 bucket binding)
  * @returns {Promise<Response>}
  */
 export async function handleListScreenshots(env) {
   try {
-    // Use mock data in development
-    if (isDevelopment(env)) {
-      const screenshots = getMockScreenshots();
-      return successResponse(
-        {
-          screenshots,
-          count: screenshots.length,
-          truncated: false,
-          __dev_mode: true, // Flag to indicate mock data
-        },
-        'Screenshots retrieved successfully (DEV MODE - Mock Data)',
-        HTTP_STATUS.OK,
-      );
-    }
-
-    // Production: Use actual R2 bucket
     const bucket = env.screenshots;
 
     if (!bucket) {
@@ -98,7 +34,6 @@ export async function handleListScreenshots(env) {
     const screenshots = await Promise.all(
       listed.objects.map(async (obj) => {
         // For list view, we need to get full object to retrieve metadata
-        // Note: This might be slow for large buckets, consider pagination
         const fullObject = await bucket.head(obj.key);
 
         return {
@@ -139,26 +74,6 @@ export async function handleListScreenshots(env) {
  */
 export async function handleGetScreenshot(key, env) {
   try {
-    // Use mock data in development
-    if (isDevelopment(env)) {
-      const mockScreenshots = getMockScreenshots();
-      const screenshot = mockScreenshots.find((s) => s.key === key);
-
-      if (!screenshot) {
-        return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
-      }
-
-      return successResponse(
-        {
-          ...screenshot,
-          __dev_mode: true,
-        },
-        'Screenshot details retrieved successfully (DEV MODE - Mock Data)',
-        HTTP_STATUS.OK,
-      );
-    }
-
-    // Production: Use actual R2 bucket
     const bucket = env.screenshots;
 
     if (!bucket) {
@@ -237,28 +152,6 @@ export async function handleUpdateMetadata(key, metadata, env) {
       );
     }
 
-    // Use mock response in development
-    if (isDevelopment(env)) {
-      const mockScreenshots = getMockScreenshots();
-      const screenshot = mockScreenshots.find((s) => s.key === key);
-
-      if (!screenshot) {
-        return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
-      }
-
-      return successResponse(
-        {
-          key,
-          metadata: sanitized,
-          __dev_mode: true,
-          __note: 'Mock update - no actual metadata updated',
-        },
-        'Metadata updated successfully (DEV MODE - Mock)',
-        HTTP_STATUS.OK,
-      );
-    }
-
-    // Production: Use actual R2 bucket
     const bucket = env.screenshots;
 
     if (!bucket) {
@@ -327,27 +220,6 @@ export async function handleDeleteMetadata(key, env) {
   try {
     console.log('handleDeleteMetadata called with:', { key });
 
-    // Use mock response in development
-    if (isDevelopment(env)) {
-      const mockScreenshots = getMockScreenshots();
-      const screenshot = mockScreenshots.find((s) => s.key === key);
-
-      if (!screenshot) {
-        return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
-      }
-
-      return successResponse(
-        {
-          key,
-          __dev_mode: true,
-          __note: 'Mock deletion - no actual metadata deleted',
-        },
-        'Metadata deleted successfully (DEV MODE - Mock)',
-        HTTP_STATUS.OK,
-      );
-    }
-
-    // Production: Use actual R2 bucket
     const bucket = env.screenshots;
 
     if (!bucket) {
@@ -401,27 +273,6 @@ export async function handleDeleteMetadata(key, env) {
  */
 export async function handleDeleteScreenshot(key, env) {
   try {
-    // Use mock response in development
-    if (isDevelopment(env)) {
-      const mockScreenshots = getMockScreenshots();
-      const exists = mockScreenshots.find((s) => s.key === key);
-
-      if (!exists) {
-        return errorResponse(ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
-      }
-
-      return successResponse(
-        {
-          key,
-          __dev_mode: true,
-          __note: 'Mock deletion - no actual file deleted',
-        },
-        'Screenshot deleted successfully (DEV MODE - Mock)',
-        HTTP_STATUS.OK,
-      );
-    }
-
-    // Production: Use actual R2 bucket
     const bucket = env.screenshots;
 
     if (!bucket) {
