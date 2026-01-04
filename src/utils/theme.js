@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 
 /**
- * Theme utilities for JsonKit
+ * Theme utilities
  * Contains all theme-related helper functions and early initialization logic
  */
 
@@ -53,7 +53,16 @@ export const initializeThemeEarly = () => {
     // Try to get stored theme from localStorage
     let storedTheme = 'system';
     try {
-      const stored = localStorage.getItem('jsonkit-settings');
+      // Get app name from Vite environment (injected at build time from package.json)
+      const appName = import.meta.env.VITE_APP_NAME;
+
+      if (!appName) {
+        console.warn('🎨 Theme: VITE_APP_NAME not found in environment');
+      }
+
+      const storageKey = `${appName}-settings`;
+      const stored = localStorage.getItem(storageKey);
+
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.state?.theme) {
