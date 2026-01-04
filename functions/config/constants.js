@@ -1,7 +1,7 @@
 // functions/config/constants.js
 
 export const AUTH = {
-  USERNAME: 'admin',
+  USERNAME: 'prabapro',
   TOKEN_EXPIRY: 24 * 60 * 60, // 24 hours in seconds
   ALGORITHM: 'HS256',
 };

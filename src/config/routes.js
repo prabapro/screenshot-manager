@@ -13,6 +13,7 @@ import { lazy } from 'react';
 
 // Lazy load all page components
 const Home = lazy(() => import('@pages/Home'));
+const Login = lazy(() => import('@pages/Login'));
 const Privacy = lazy(() => import('@pages/Privacy'));
 const Terms = lazy(() => import('@pages/Terms'));
 const NotFound = lazy(() => import('@pages/NotFound'));
@@ -29,8 +30,21 @@ export const ROUTE_CONFIG = {
     isIndex: true,
     title: 'Home',
     showInNav: false,
+    requiresAuth: true, // Protected route
     sitemap_priority: 1.0,
     sitemap_changefreq: 'weekly',
+  },
+
+  // Auth routes
+  LOGIN: {
+    path: '/login',
+    component: Login,
+    title: 'Login',
+    description: 'Sign in to Screenshot Manager',
+    showInNav: false,
+    requiresAuth: false, // Public route
+    sitemap_priority: 0.3,
+    sitemap_changefreq: 'monthly',
   },
 
   // Legal pages
@@ -41,6 +55,7 @@ export const ROUTE_CONFIG = {
     description: 'How we protect and handle your data',
     showInNav: false,
     category: 'legal',
+    requiresAuth: false, // Public route
     sitemap_priority: 0.5,
     sitemap_changefreq: 'monthly',
   },
@@ -52,6 +67,7 @@ export const ROUTE_CONFIG = {
     description: 'Terms and conditions for using JsonKit',
     showInNav: false,
     category: 'legal',
+    requiresAuth: false, // Public route
     sitemap_priority: 0.5,
     sitemap_changefreq: 'monthly',
   },
@@ -63,6 +79,7 @@ export const ROUTE_CONFIG = {
     title: 'Not Found',
     showInNav: false,
     isWildcard: true,
+    requiresAuth: false, // Public route
     // No sitemap fields - excluded from sitemap
   },
 };
@@ -135,4 +152,18 @@ export const getRouteInfo = (pathname) => {
     isNotFound: !isKnownRoute(pathname),
     config: route || null,
   };
+};
+
+/**
+ * Get protected routes (require authentication)
+ */
+export const getProtectedRoutes = () => {
+  return Object.values(ROUTE_CONFIG).filter((route) => route.requiresAuth);
+};
+
+/**
+ * Get public routes (no authentication required)
+ */
+export const getPublicRoutes = () => {
+  return Object.values(ROUTE_CONFIG).filter((route) => !route.requiresAuth);
 };

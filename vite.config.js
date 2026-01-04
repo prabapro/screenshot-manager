@@ -68,14 +68,13 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-  },
-
-  // Only proxy API requests to Wrangler
-  proxy: {
-    '/api': {
-      target: 'http://127.0.0.1:8788',
-      changeOrigin: true,
-      secure: false,
+    // Proxy API requests to Wrangler dev server
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8788',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 
