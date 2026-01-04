@@ -7,6 +7,7 @@
     "build:viz": "pnpm dlx vite-bundle-visualizer --report dist/stats.json --output dist/bundle-visualizer.html",
     "build": "vite build",
     "dev": "concurrently \"vite\" -c \"green,blue\" \"wrangler pages dev\"",
+    "dev:env": "infisical init && infisical export --env=dev --format=dotenv --path=/ > .dev.vars && echo \"✅ .dev.vars generated. Please make sure it is added to .gitignore\"",
     "format": "prettier --write \"./**/*.{html,js,jsx,json,css,ts,tsx}\"",
     "generate-jsconfig": "node tools/generate-jsconfig.js",
     "lint": "eslint .",
