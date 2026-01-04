@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import LoadingSpinner from '@components/common/LoadingSpinner';
 import ErrorBoundary from '@components/common/ErrorBoundary';
 import ScrollToTop from '@components/common/ScrollToTop';
+import ProtectedRoute from '@components/common/ProtectedRoute';
 import { getRouterConfig } from '@config/routes';
 import Layout from '@components/layout/Layout';
 
@@ -34,20 +35,31 @@ const LazyErrorFallback = ({ error, resetErrorBoundary }) => (
 
 // Route wrapper component with error boundary and suspense
 // eslint-disable-next-line no-unused-vars
-const RouteWrapper = ({ component: Component }) => (
-  <ErrorBoundary fallback={LazyErrorFallback}>
-    <Suspense fallback={<PageLoader />}>
-      <Component />
-    </Suspense>
-  </ErrorBoundary>
-);
+const RouteWrapper = ({ component: Component, requiresAuth }) => {
+  const element = (
+    <ErrorBoundary fallback={LazyErrorFallback}>
+      <Suspense fallback={<PageLoader />}>
+        <Component />
+      </Suspense>
+    </ErrorBoundary>
+  );
+
+  // Wrap with ProtectedRoute if authentication is required
+  if (requiresAuth) {
+    return <ProtectedRoute>{element}</ProtectedRoute>;
+  }
+
+  return element;
+};
 
 // Helper function to create a route element
 const createRouteElement = (routeConfig) => {
-  const { path, component, isIndex, isWildcard } = routeConfig;
+  const { path, component, isIndex, isWildcard, requiresAuth } = routeConfig;
   const routeKey = isIndex ? 'index' : isWildcard ? 'wildcard' : path;
 
-  const element = <RouteWrapper component={component} />;
+  const element = (
+    <RouteWrapper component={component} requiresAuth={requiresAuth} />
+  );
 
   if (isIndex) {
     return <Route key={routeKey} index element={element} />;

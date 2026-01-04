@@ -1,14 +1,31 @@
 // src/components/layout/MobileMenu.jsx
 
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, LogOut } from 'lucide-react';
 import Navigation from './Navigation';
 import { ThemeToggle } from '@components/ui/theme-toggle';
+import { Button } from '@components/ui/button';
+import { useAuthStore } from '@stores/useAuthStore';
 
 const appName = import.meta.env.VITE_APP_NAME_CLEANED;
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
 export default function MobileMenu({ isOpen, onClose }) {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, initialize } = useAuthStore();
+
+  // Initialize auth state on mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  const handleLogout = async () => {
+    await logout();
+    onClose();
+    navigate('/login');
+  };
+
   // Close menu on escape key
   useEffect(() => {
     const handleEscape = (e) => {
@@ -56,16 +73,27 @@ export default function MobileMenu({ isOpen, onClose }) {
 
           {/* Navigation */}
           <div className="flex-1 p-6 overflow-y-auto">
-            <Navigation mobile onItemClick={onClose} />
+            {isAuthenticated && <Navigation mobile onItemClick={onClose} />}
           </div>
 
-          {/* Footer with Theme Toggle */}
+          {/* Footer with Theme Toggle and Logout */}
           <div className="p-6 border-t border-border/30 space-y-4">
             {/* Theme Toggle */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Theme</span>
               <ThemeToggle />
             </div>
+
+            {/* Logout Button */}
+            {isAuthenticated && (
+              <Button
+                variant="outline"
+                className="w-full flex items-center justify-center space-x-2"
+                onClick={handleLogout}>
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </Button>
+            )}
 
             {/* Version */}
             <div className="text-xs text-muted-foreground/60 text-center">
